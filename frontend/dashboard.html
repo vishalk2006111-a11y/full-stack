@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input {
+      padding: 10px;
+      margin: 5px;
+      width: 30%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .delete-btn {
+      background: red;
+      margin-left: 10px;
+    }
+
+    .delete-btn:hover {
+      background: darkred;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #f9f9f9;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .top-section {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>User Dashboard</h1>
+
+  <div class="container">
+
+    <!-- Add User -->
+    <div class="top-section">
+      <h3>Add User</h3>
+      <form id="form">
+        <input type="text" id="name" placeholder="Name" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <button type="submit">Add</button>
+      </form>
+    </div>
+
+    <!-- Search -->
+    <div class="top-section">
+      <h3>Search User</h3>
+      <input type="text" id="search" placeholder="Search by name" />
+      <button onclick="searchUser()">Search</button>
+      <button onclick="loadUsers()">Reset</button>
+    </div>
+
+    <!-- User List -->
+    <h3>Users</h3>
+    <ul id="list"></ul>
+
+  </div>
+
+  <script>
+    const API = "http://localhost:3000/users";
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+
+      await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email })
+      });
+
+      document.getElementById("form").reset();
+      loadUsers();
+    });
+
+    async function loadUsers() {
+      const res = await fetch(API);
+      const data = await res.json();
+      showUsers(data);
+    }
+
+    async function searchUser() {
+      const name = document.getElementById("search").value;
+      const res = await fetch(`${API}?name=${name}`);
+      const data = await res.json();
+      showUsers(data);
+    }
+
+    function showUsers(users) {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      users.forEach(user => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span>${user.name} - ${user.email}</span>
+          <button class="delete-btn" onclick="deleteUser('${user._id}')">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function deleteUser(id) {
+      await fetch(`${API}/${id}`, { method: "DELETE" });
+      loadUsers();
+    }
+
+    loadUsers();
+  </script>
+
+</body>
+</html>
